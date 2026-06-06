@@ -45,6 +45,12 @@ Supported list filters are `recipientId`, `eventId`, `read`, and `type`.
 | --- | --- |
 | `MONGODB_URI` | `mongodb://localhost:27018/notification_db` |
 | `EUREKA_URL` | `http://localhost:8761/eureka/` |
+| `CONFIG_SERVER_IMPORT` | `optional:configserver:http://localhost:8099` |
+| `CONFIG_SERVER_FAIL_FAST` | `false` |
+
+The team Config Server centrally provides the service port, MongoDB URI,
+Eureka registration, actuator, and Swagger settings. Compose changes the
+import to required mode so missing central configuration stops startup.
 | `CONFIG_SERVER_URL` | `http://localhost:8099` |
 
 Validation and business errors use a structured response containing the HTTP

@@ -1,6 +1,7 @@
 package com.awd2026.notificationservice.service;
 
 import com.awd2026.notificationservice.dto.NotificationRequest;
+import com.awd2026.notificationservice.dto.NotificationResponse;
 import com.awd2026.notificationservice.entity.Notification;
 import com.awd2026.notificationservice.entity.NotificationType;
 import com.awd2026.notificationservice.repository.NotificationRepository;
@@ -39,13 +40,13 @@ class NotificationServiceTest {
         when(notificationRepository.save(org.mockito.ArgumentMatchers.any(Notification.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        Notification notification = notificationService.createNotification(request);
+        NotificationResponse notification = notificationService.createNotification(request);
 
-        assertEquals("camper-1", notification.getRecipientId());
-        assertEquals(NotificationType.EVENT_REMINDER, notification.getType());
-        assertFalse(notification.isRead());
-        assertNotNull(notification.getCreatedAt());
-        assertNotNull(notification.getUpdatedAt());
+        assertEquals("camper-1", notification.recipientId());
+        assertEquals(NotificationType.EVENT_REMINDER, notification.type());
+        assertFalse(notification.read());
+        assertNotNull(notification.createdAt());
+        assertNotNull(notification.updatedAt());
     }
 
     @Test
@@ -55,14 +56,16 @@ class NotificationServiceTest {
         when(notificationRepository.findByRecipientIdOrderByCreatedAtDesc("camper-1"))
                 .thenReturn(List.of(matching, other));
 
-        List<Notification> result = notificationService.findNotifications(
+        List<NotificationResponse> result = notificationService.findNotifications(
                 "camper-1",
                 "event-1",
                 false,
                 NotificationType.EVENT_REMINDER
         );
 
-        assertEquals(List.of(matching), result);
+        assertEquals(1, result.size());
+        assertEquals("event-1", result.get(0).eventId());
+        assertEquals("camper-1", result.get(0).recipientId());
     }
 
     @Test
@@ -73,10 +76,10 @@ class NotificationServiceTest {
                 .thenReturn(Optional.of(notification));
         when(notificationRepository.save(notification)).thenReturn(notification);
 
-        Notification updated = notificationService.markAsRead("notification-1");
+        NotificationResponse updated = notificationService.markAsRead("notification-1");
 
-        assertTrue(updated.isRead());
-        assertNotNull(updated.getReadAt());
+        assertTrue(updated.read());
+        assertNotNull(updated.readAt());
         verify(notificationRepository).save(notification);
     }
 

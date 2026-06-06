@@ -1,9 +1,11 @@
 package com.awd2026.notificationservice.controller;
 
 import com.awd2026.notificationservice.dto.NotificationRequest;
-import com.awd2026.notificationservice.entity.Notification;
+import com.awd2026.notificationservice.dto.NotificationResponse;
 import com.awd2026.notificationservice.entity.NotificationType;
 import com.awd2026.notificationservice.service.NotificationService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +25,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/notifications")
+@Tag(name = "Notifications", description = "Persisted notification CRUD and read state")
 public class NotificationController {
 
     private final NotificationService notificationService;
@@ -32,7 +35,8 @@ public class NotificationController {
     }
 
     @GetMapping
-    public List<Notification> getNotifications(
+    @Operation(summary = "List and filter notifications")
+    public List<NotificationResponse> getNotifications(
             @RequestParam(required = false) String recipientId,
             @RequestParam(required = false) String eventId,
             @RequestParam(required = false) Boolean read,
@@ -42,12 +46,13 @@ public class NotificationController {
     }
 
     @GetMapping("/{id}")
-    public Notification getNotification(@PathVariable String id) {
+    public NotificationResponse getNotification(@PathVariable String id) {
         return notificationService.getNotification(id);
     }
 
     @PostMapping
-    public ResponseEntity<Notification> createNotification(
+    @Operation(summary = "Create a persisted notification")
+    public ResponseEntity<NotificationResponse> createNotification(
             @Valid @RequestBody NotificationRequest request
     ) {
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -55,7 +60,8 @@ public class NotificationController {
     }
 
     @PutMapping("/{id}")
-    public Notification updateNotification(
+    @Operation(summary = "Update notification content")
+    public NotificationResponse updateNotification(
             @PathVariable String id,
             @Valid @RequestBody NotificationRequest request
     ) {
@@ -69,11 +75,13 @@ public class NotificationController {
     }
 
     @PatchMapping("/{id}/read")
-    public Notification markAsRead(@PathVariable String id) {
+    @Operation(summary = "Mark one notification as read")
+    public NotificationResponse markAsRead(@PathVariable String id) {
         return notificationService.markAsRead(id);
     }
 
     @PatchMapping("/recipient/{recipientId}/read-all")
+    @Operation(summary = "Mark all notifications for a recipient as read")
     public Map<String, Long> markAllAsRead(@PathVariable String recipientId) {
         return Map.of("updatedCount", notificationService.markAllAsRead(recipientId));
     }

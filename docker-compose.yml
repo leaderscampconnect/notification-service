@@ -1,0 +1,13 @@
+services:
+  mongodb:
+    image: mongo:7
+    container_name: notification-service-mongodb
+    restart: unless-stopped
+    ports:
+      - "27018:27017"
+    volumes:
+      - notification_mongodb_data:/data/db
+
+volumes:
+  notification_mongodb_data:
+

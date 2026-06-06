@@ -1,0 +1,16 @@
+package com.awd2026.notificationservice.entity;
+
+public enum NotificationType {
+    EVENT_CREATED,
+    REGISTRATION_CONFIRMED,
+    WAITLIST_JOINED,
+    WAITLIST_PROMOTED,
+    REGISTRATION_CANCELLED,
+    EVENT_POSTPONED,
+    EVENT_CANCELLED,
+    EVENT_STARTED,
+    EVENT_COMPLETED,
+    EVENT_REMINDER,
+    GENERAL
+}
+

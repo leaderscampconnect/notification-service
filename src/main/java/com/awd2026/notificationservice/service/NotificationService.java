@@ -1,6 +1,7 @@
 package com.awd2026.notificationservice.service;
 
 import com.awd2026.notificationservice.dto.NotificationRequest;
+import com.awd2026.notificationservice.dto.NotificationResponse;
 import com.awd2026.notificationservice.entity.Notification;
 import com.awd2026.notificationservice.entity.NotificationType;
 import com.awd2026.notificationservice.repository.NotificationRepository;
@@ -20,7 +21,7 @@ public class NotificationService {
         this.notificationRepository = notificationRepository;
     }
 
-    public List<Notification> findNotifications(
+    public List<NotificationResponse> findNotifications(
             String recipientId,
             String eventId,
             Boolean read,
@@ -35,29 +36,34 @@ public class NotificationService {
                         || eventId.equals(notification.getEventId()))
                 .filter(notification -> read == null || read == notification.isRead())
                 .filter(notification -> type == null || type == notification.getType())
+                .map(NotificationResponse::from)
                 .toList();
     }
 
-    public Notification getNotification(String id) {
+    public NotificationResponse getNotification(String id) {
+        return NotificationResponse.from(getNotificationEntity(id));
+    }
+
+    private Notification getNotificationEntity(String id) {
         return notificationRepository.findById(id)
                 .orElseThrow(() -> notFound(id));
     }
 
-    public Notification createNotification(NotificationRequest request) {
+    public NotificationResponse createNotification(NotificationRequest request) {
         LocalDateTime now = LocalDateTime.now();
         Notification notification = new Notification();
         applyRequest(notification, request);
         notification.setRead(false);
         notification.setCreatedAt(now);
         notification.setUpdatedAt(now);
-        return notificationRepository.save(notification);
+        return NotificationResponse.from(notificationRepository.save(notification));
     }
 
-    public Notification updateNotification(String id, NotificationRequest request) {
-        Notification notification = getNotification(id);
+    public NotificationResponse updateNotification(String id, NotificationRequest request) {
+        Notification notification = getNotificationEntity(id);
         applyRequest(notification, request);
         notification.setUpdatedAt(LocalDateTime.now());
-        return notificationRepository.save(notification);
+        return NotificationResponse.from(notificationRepository.save(notification));
     }
 
     public void deleteNotification(String id) {
@@ -67,15 +73,15 @@ public class NotificationService {
         notificationRepository.deleteById(id);
     }
 
-    public Notification markAsRead(String id) {
-        Notification notification = getNotification(id);
+    public NotificationResponse markAsRead(String id) {
+        Notification notification = getNotificationEntity(id);
         if (!notification.isRead()) {
             notification.setRead(true);
             notification.setReadAt(LocalDateTime.now());
             notification.setUpdatedAt(notification.getReadAt());
-            return notificationRepository.save(notification);
+            return NotificationResponse.from(notificationRepository.save(notification));
         }
-        return notification;
+        return NotificationResponse.from(notification);
     }
 
     public long markAllAsRead(String recipientId) {

@@ -1,0 +1,23 @@
+{
+  "name": "campconnect-notification-service",
+  "version": "1.0.0",
+  "description": "CampConnect notification microservice built with Node.js, Express, and MongoDB",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test --test-reporter=spec"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "4.22.2",
+    "mongoose": "8.24.0",
+    "swagger-ui-express": "5.0.1"
+  },
+  "devDependencies": {
+    "supertest": "7.1.3"
+  }
+}

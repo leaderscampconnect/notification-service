@@ -116,6 +116,18 @@ export async function loadConfig(environment = process.env) {
       + `${encodeURIComponent(rabbitPassword)}@${rabbitHost}:${rabbitPort}`,
     swaggerPath: property("springdoc.swagger-ui.path", "/swagger-ui.html"),
     apiDocsPath: property("springdoc.api-docs.path", "/v3/api-docs"),
-    configServer: central
+    configServer: central,
+    
+    // RabbitMQ Config
+    rabbitmqUrl: environment.RABBITMQ_URL || "amqp://guest:guest@localhost:5672",
+    rabbitmqExchange: environment.RABBITMQ_EXCHANGE || "camping.events",
+    
+    // SMTP Config
+    smtpHost: environment.SMTP_HOST || "localhost",
+    smtpPort: Number(environment.SMTP_PORT) || 1025,
+    smtpUser: environment.SMTP_USER || "",
+    smtpPass: environment.SMTP_PASS || "",
+    smtpSecure: environment.SMTP_SECURE === "true",
+    emailFrom: environment.EMAIL_FROM || "CampConnect <noreply@campconnect.com>"
   };
 }

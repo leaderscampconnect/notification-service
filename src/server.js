@@ -5,6 +5,7 @@ import { loadConfig } from "./config.js";
 import { createEurekaClient } from "./eureka-client.js";
 import { Notification } from "./notification-model.js";
 import { NotificationService } from "./notification-service.js";
+import { createRabbitUserConsumer } from "./rabbitmq-user-consumer.js";
 
 const config = await loadConfig();
 
@@ -14,6 +15,12 @@ await mongoose.connect(config.mongoUri, {
 await Notification.syncIndexes();
 
 const notificationService = new NotificationService();
+const rabbitUserConsumer = createRabbitUserConsumer({
+  config,
+  notificationService
+});
+await rabbitUserConsumer.start();
+
 const app = createApp({
   notificationService,
   swaggerPath: config.swaggerPath,
@@ -23,7 +30,14 @@ const app = createApp({
       throw new Error("MongoDB is not connected");
     }
     await mongoose.connection.db.admin().ping();
-    return { mongo: "UP" };
+    if (!rabbitUserConsumer.isConnected()) {
+      throw new Error("RabbitMQ is not connected");
+    }
+    return {
+      mongo: "UP",
+      rabbit: "UP",
+      discoveryComposite: "UP"
+    };
   }
 });
 
@@ -40,6 +54,7 @@ await eurekaClient.start();
 async function shutdown(signal) {
   console.info(`Received ${signal}; shutting down`);
   await eurekaClient.stop();
+  await rabbitUserConsumer.stop();
   await mongoose.disconnect();
   server.close(() => process.exit(0));
 }

@@ -13,6 +13,7 @@ Node.js, Express, Mongoose, and MongoDB.
 - Spring Config Server property loading
 - Eureka REST registration and heartbeats
 - Compatibility with the Spring Boot Event Feign client and API Gateway
+- RabbitMQ consumption of teammate `user-service` lifecycle events
 
 ## Architecture
 
@@ -23,6 +24,7 @@ flowchart LR
     Config[Spring Config Server] -->|REST configuration| Notifications
     Notifications -->|REST registration| Eureka
     Notifications --> MongoDB[(notification_db)]
+    Users[Teammate user-service] -->|RabbitMQ user events| Notifications
 ```
 
 The service keeps the API paths and JSON contract of the previous Spring
@@ -77,11 +79,14 @@ List filters are `recipientId`, `eventId`, `read`, and `type`.
 | `EUREKA_INSTANCE_IP` | DNS-resolved hostname |
 | `EUREKA_ENABLED` | `true` |
 | `EUREKA_FAIL_FAST` | `false` |
+| `RABBITMQ_URL` | `amqp://guest:guest@localhost:5672` |
+| `RABBITMQ_ENABLED` | `true` |
+| `RABBITMQ_FAIL_FAST` | `false` |
 
 The Node adapter reads the existing Spring property names from
 `/notification-service/default`, including `server.port`,
-`spring.data.mongodb.uri`, Eureka, actuator, and Springdoc paths. Environment
-variables take priority.
+`spring.data.mongodb.uri`, `spring.rabbitmq.*`, Eureka, actuator, and Springdoc
+paths. Environment variables take priority.
 
 ## Validation And Errors
 
@@ -108,3 +113,20 @@ Errors preserve the shared response format:
 ```
 
 API security remains centralized in the Gateway through Keycloak roles.
+
+## Team Communication Scenarios
+
+The teammate-owned `user-service` publishes lifecycle events to
+`campconnect.user.exchange`. This service binds separate durable queues, so it
+does not compete with the User service's own consumers.
+
+| Routing key | Notification behavior |
+| --- | --- |
+| `user.created` | Persist `USER_WELCOME` |
+| `user.updated` | Persist `USER_PROFILE_UPDATED` |
+| `user.password.reset` | Persist `USER_PASSWORD_RESET` |
+| `user.deleted` | Delete that user's persisted notifications |
+
+Failed messages are rejected to `campconnect.notification.user.dlq`.
+`sourceEventId` makes notification creation idempotent when RabbitMQ redelivers
+the same event.

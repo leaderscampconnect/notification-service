@@ -18,12 +18,15 @@ export function createApp({
   app.get("/actuator/health", async (_request, response) => {
     try {
       const details = await healthCheck();
+      const components = Object.fromEntries(
+        Object.entries(details).map(([name, status]) => [
+          name,
+          { status: status || "UP" }
+        ])
+      );
       response.json({
         status: "UP",
-        components: {
-          mongo: { status: details.mongo || "UP" },
-          discoveryComposite: { status: "UP" }
-        }
+        components
       });
     } catch {
       response.status(503).json({

@@ -70,6 +70,18 @@ export async function loadConfig(environment = process.env) {
   const central = await fetchCentralProperties(environment);
   const property = (name, fallback) =>
     resolvePlaceholder(central.properties[name] ?? fallback, environment);
+  const rabbitHost =
+    environment.RABBITMQ_HOST
+    || property("spring.rabbitmq.host", "localhost");
+  const rabbitPort =
+    environment.RABBITMQ_PORT
+    || property("spring.rabbitmq.port", "5672");
+  const rabbitUser =
+    environment.RABBITMQ_USER
+    || property("spring.rabbitmq.username", "guest");
+  const rabbitPassword =
+    environment.RABBITMQ_PASSWORD
+    || property("spring.rabbitmq.password", "guest");
 
   const port = Number(
     environment.SERVER_PORT
@@ -96,6 +108,12 @@ export async function loadConfig(environment = process.env) {
     eurekaIpAddress: environment.EUREKA_INSTANCE_IP,
     eurekaEnabled: environment.EUREKA_ENABLED !== "false",
     eurekaFailFast: environment.EUREKA_FAIL_FAST === "true",
+    rabbitEnabled: environment.RABBITMQ_ENABLED !== "false",
+    rabbitFailFast: environment.RABBITMQ_FAIL_FAST === "true",
+    rabbitUrl:
+      environment.RABBITMQ_URL
+      || `amqp://${encodeURIComponent(rabbitUser)}:`
+      + `${encodeURIComponent(rabbitPassword)}@${rabbitHost}:${rabbitPort}`,
     swaggerPath: property("springdoc.swagger-ui.path", "/swagger-ui.html"),
     apiDocsPath: property("springdoc.api-docs.path", "/v3/api-docs"),
     configServer: central

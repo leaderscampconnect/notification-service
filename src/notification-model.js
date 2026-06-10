@@ -13,7 +13,8 @@ const notificationSchema = new mongoose.Schema(
     readAt: { type: Date, default: null },
     createdAt: { type: Date, required: true },
     updatedAt: { type: Date, required: true },
-    actionUrl: { type: String, default: null }
+    actionUrl: { type: String, default: null },
+    sourceEventId: { type: String, unique: true, sparse: true }
   },
   {
     collection: "notifications",

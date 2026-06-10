@@ -13,6 +13,7 @@
     "node": ">=18"
   },
   "dependencies": {
+    "amqplib": "0.10.9",
     "express": "4.22.2",
     "mongoose": "8.24.0",
     "swagger-ui-express": "5.0.1"

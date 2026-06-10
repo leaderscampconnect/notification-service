@@ -64,6 +64,39 @@ export class NotificationService {
     return toResponse(notification);
   }
 
+  async createFromUserEvent(userEvent, notification) {
+    const eventTime = new Date(userEvent.eventTime);
+    if (Number.isNaN(eventTime.getTime())) {
+      throw new Error("User event has an invalid eventTime");
+    }
+
+    const now = new Date();
+    const sourceEventId =
+      `user:${userEvent.eventType}:${userEvent.userId}:${eventTime.toISOString()}`;
+    const persisted = await this.model.findOneAndUpdate(
+      { sourceEventId },
+      {
+        $setOnInsert: {
+          recipientId: String(userEvent.userId),
+          eventId: null,
+          ...notification,
+          read: false,
+          readAt: null,
+          createdAt: eventTime,
+          updatedAt: now,
+          sourceEventId
+        }
+      },
+      {
+        upsert: true,
+        new: true,
+        runValidators: true,
+        setDefaultsOnInsert: true
+      }
+    ).lean();
+    return toResponse(persisted);
+  }
+
   async updateNotification(id, request) {
     ensureValidId(id);
     const notification = await this.model.findByIdAndUpdate(
@@ -112,5 +145,10 @@ export class NotificationService {
 
   async getUnreadCount(recipientId) {
     return this.model.countDocuments({ recipientId, read: false });
+  }
+
+  async deleteByRecipientId(recipientId) {
+    const result = await this.model.deleteMany({ recipientId });
+    return result.deletedCount;
   }
 }

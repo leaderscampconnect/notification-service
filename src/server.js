@@ -6,10 +6,13 @@ import { createEurekaClient } from "./eureka-client.js";
 import { Notification } from "./notification-model.js";
 import { NotificationService } from "./notification-service.js";
 
+import { startRabbitMQConsumer, stopRabbitMQConsumer } from "./messaging/rabbitmq-consumer.js";
+
 const config = await loadConfig();
 
 await mongoose.connect(config.mongoUri, {
-  serverSelectionTimeoutMS: 10_000
+  serverSelectionTimeoutMS: 10_000,
+  family: 4
 });
 await Notification.syncIndexes();
 
@@ -37,8 +40,11 @@ const server = app.listen(config.port, "0.0.0.0", async () => {
 const eurekaClient = await createEurekaClient(config);
 await eurekaClient.start();
 
+await startRabbitMQConsumer(config);
+
 async function shutdown(signal) {
   console.info(`Received ${signal}; shutting down`);
+  await stopRabbitMQConsumer();
   await eurekaClient.stop();
   await mongoose.disconnect();
   server.close(() => process.exit(0));

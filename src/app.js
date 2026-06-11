@@ -5,6 +5,9 @@ import { errorHandler, notFoundHandler } from "./errors.js";
 import { createNotificationRouter } from "./notification-routes.js";
 import { openapiDocument } from "./openapi.js";
 
+import templateRoutes from "./routes/templateRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
+
 export function createApp({
   notificationService,
   healthCheck = async () => ({ mongo: "UP" }),
@@ -51,7 +54,14 @@ export function createApp({
     swaggerUi.serve,
     swaggerUi.setup(openapiDocument, { explorer: true })
   );
+  
+  // Mount the new ES module router
   app.use("/notifications", createNotificationRouter(notificationService));
+  
+  // Mount Iheb's CommonJS routes to retain his original endpoints
+  app.use("/api/templates", templateRoutes);
+  app.use("/api/notifications", notificationRoutes);
+
   app.use(notFoundHandler);
   app.use(errorHandler);
 

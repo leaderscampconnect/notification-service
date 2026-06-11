@@ -47,13 +47,41 @@ export async function startRabbitMQConsumer(config) {
         channel.ack(msg);
       } catch (err) {
         console.error("?O Processing failed, message discarded (no requeue):", err.message);
-        // nack without requeue to prevent infinite retry loops
         channel.nack(msg, false, false);
       }
     });
+
+    // --- TICKET CONSUMER ---
+    const TICKET_QUEUE = "notification.ticket.issued";
+    await channel.assertQueue(TICKET_QUEUE, { durable: true });
+    await channel.bindQueue(TICKET_QUEUE, config.rabbitmqExchange, "ticket.issued");
+    
+    console.log(`dY? Ticket Consumer ready +' queue: "${TICKET_QUEUE}"`);
+    
+    channel.consume(TICKET_QUEUE, async (msg) => {
+      if (!msg) return;
+      let payload;
+      try {
+        payload = JSON.parse(msg.content.toString());
+      } catch {
+        console.error("?O Invalid JSON in ticket message ?' discarding");
+        channel.nack(msg, false, false);
+        return;
+      }
+
+      console.log(`dY"c [${payload.eventType || 'ticket.issued'}] received | ticketId: ${payload.ticketId}`);
+
+      try {
+        await processEmailEvent(payload.eventType || "ticket.issued", payload, config);
+        channel.ack(msg);
+      } catch (err) {
+        console.error("?O Ticket processing failed, message discarded:", err.message);
+        channel.nack(msg, false, false);
+      }
+    });
+
   } catch (error) {
     console.error("Failed to start RabbitMQ consumer:", error.message);
-    // Let the application retry or crash depending on requirements
   }
 }
 

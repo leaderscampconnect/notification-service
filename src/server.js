@@ -9,8 +9,6 @@ import { createRabbitUserConsumer } from "./rabbitmq-user-consumer.js";
 
 import { startRabbitMQConsumer, stopRabbitMQConsumer } from "./messaging/rabbitmq-consumer.js";
 
-import { startRabbitMQConsumer, stopRabbitMQConsumer } from "./messaging/rabbitmq-consumer.js";
-
 const config = await loadConfig();
 
 await mongoose.connect(config.mongoUri, {

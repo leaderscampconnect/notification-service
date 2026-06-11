@@ -5,9 +5,9 @@
  * Templates use Handlebars syntax: {{variableName}}
  * They are upserted so running this script multiple times is safe.
  */
-import 'dotenv/config';
-import mongoose from 'mongoose';
-import { EmailTemplate as Template } from '../src/email/template-model.js';
+require('dotenv').config();
+const mongoose = require('mongoose');
+const Template = require('../src/models/Template');
 
 const YEAR = new Date().getFullYear();
 
@@ -402,19 +402,12 @@ const seed = async () => {
     console.log('✅ Connected to MongoDB');
 
     for (const t of templates) {
-      const templateDoc = {
-        name: t.eventType,
-        subject: t.subject,
-        htmlContent: t.htmlBody,
-        textContent: t.textBody
-      };
-      
       const result = await Template.findOneAndUpdate(
-        { name: t.eventType },
-        templateDoc,
+        { eventType: t.eventType },
+        t,
         { upsert: true, new: true }
       );
-      console.log(`o. Seeded template: "${result.name}"`);
+      console.log(`✅ Seeded template: "${result.name}" (${result.eventType})`);
     }
 
     console.log('\n🎉 All templates seeded successfully!\n');

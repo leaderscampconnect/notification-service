@@ -85,6 +85,7 @@ export async function loadConfig(environment = process.env) {
 
   const port = Number(
     environment.SERVER_PORT
+      || environment.PORT
       || environment.NOTIFICATION_SERVICE_PORT
       || property("server.port", "8082")
   );

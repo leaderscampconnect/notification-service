@@ -6,20 +6,20 @@ const Eureka = require('eureka-js-client').Eureka;
  */
 const registerWithEureka = () => {
   const PORT = parseInt(process.env.PORT, 10) || 3001;
-  const HOST = process.env.HOSTNAME || 'api-notification';
+  const HOST = process.env.HOSTNAME || 'notification-service';
   const EUREKA_HOST = process.env.EUREKA_HOST || 'eureka';
   const EUREKA_PORT = parseInt(process.env.EUREKA_PORT, 10) || 8761;
 
   const client = new Eureka({
     instance: {
-      app: 'api-notification',
+      app: 'notification-service',
       hostName: HOST,
       ipAddr: HOST,
       port: {
         $: PORT,
         '@enabled': true,
       },
-      vipAddress: 'api-notification',
+      vipAddress: 'notification-service',
       dataCenterInfo: {
         '@class':
           'com.netflix.appinfo.InstanceInfo$DefaultDataCenterInfo',

@@ -74,7 +74,7 @@ export function createApp({
 
   app.use("/notifications/v2/camping", createCampingNotificationRouter(campingService));
   
-  app.use("/notifications/v2", createNotificationRouter(notificationService));
+  app.use("/notifications", createNotificationRouter(notificationService));
   
   // Mount Iheb's CommonJS routes to retain his original endpoints
   app.use("/api/templates", templateRoutes);

@@ -8,6 +8,7 @@ import { NotificationService } from "./notification-service.js";
 import { createRabbitUserConsumer } from "./rabbitmq-user-consumer.js";
 
 import { startRabbitMQConsumer, stopRabbitMQConsumer } from "./messaging/rabbitmq-consumer.js";
+import { seedTemplates } from "./seeds/defaultTemplates.js";
 
 const config = await loadConfig();
 
@@ -16,6 +17,7 @@ await mongoose.connect(config.mongoUri, {
   family: 4
 });
 await Notification.syncIndexes();
+await seedTemplates();
 
 const notificationService = new NotificationService();
 const rabbitUserConsumer = createRabbitUserConsumer({

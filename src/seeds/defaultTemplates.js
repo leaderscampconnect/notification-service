@@ -5,9 +5,10 @@
  * Templates use Handlebars syntax: {{variableName}}
  * They are upserted so running this script multiple times is safe.
  */
-require('dotenv').config();
-const mongoose = require('mongoose');
-const Template = require('../src/models/Template');
+// dotenv is only needed for local CLI execution
+// and should be loaded via node -r dotenv/config when needed
+import mongoose from 'mongoose';
+import { EmailTemplate } from '../email/template-model.js';
 
 const YEAR = new Date().getFullYear();
 
@@ -24,10 +25,9 @@ const templates = [
   // 1. BOOKING CONFIRMATION
   // ─────────────────────────────────────────────────────────────────────────
   {
-    name: 'booking_confirmation',
-    eventType: 'booking.confirmed',
+    name: 'booking.confirmed',
     subject: '✅ Booking Confirmed — {{campingName}} | Ref: {{bookingReference}}',
-    htmlBody: `
+    htmlContent: `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -133,7 +133,7 @@ const templates = [
 </body>
 </html>
     `.trim(),
-    textBody: `
+    textContent: `
 BOOKING CONFIRMED — CampConnect
 ================================
 
@@ -156,17 +156,15 @@ See you at the campsite!
 
 © ${YEAR} CampConnect
     `.trim(),
-    isActive: true,
   },
 
   // ─────────────────────────────────────────────────────────────────────────
   // 2. TICKET RECEIPT
   // ─────────────────────────────────────────────────────────────────────────
   {
-    name: 'ticket_receipt',
-    eventType: 'ticket.issued',
+    name: 'ticket.issued',
     subject: '🎟️ Your Ticket — {{campingName}} | Code: {{ticketCode}}',
-    htmlBody: `
+    htmlContent: `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -275,7 +273,7 @@ See you at the campsite!
 </body>
 </html>
     `.trim(),
-    textBody: `
+    textContent: `
 TICKET ISSUED — CampConnect
 ============================
 
@@ -300,17 +298,15 @@ Enjoy your camping experience!
 
 © ${YEAR} CampConnect
     `.trim(),
-    isActive: true,
   },
 
   // ─────────────────────────────────────────────────────────────────────────
   // 3. OWNER ALERT
   // ─────────────────────────────────────────────────────────────────────────
   {
-    name: 'owner_alert',
-    eventType: 'booking.owner_alert',
+    name: 'booking.owner_alert',
     subject: '🏕️ New Booking Confirmed — {{campingName}} | Ref: {{bookingReference}}',
-    htmlBody: `
+    htmlContent: `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -369,7 +365,7 @@ Enjoy your camping experience!
 </body>
 </html>
     `.trim(),
-    textBody: `
+    textContent: `
 NEW BOOKING CONFIRMED — CampConnect
 ====================================
 
@@ -388,34 +384,35 @@ You may review this booking from your CampConnect dashboard.
 
 Automated notification sent by CampConnect.
     `.trim(),
-    isActive: true,
   },
 ];
 
-const seed = async () => {
-  const uri =
-    process.env.MONGODB_URI ||
-    'mongodb://localhost:27017/campconnect_notification';
-
+export const seedTemplates = async () => {
   try {
-    await mongoose.connect(uri);
-    console.log('✅ Connected to MongoDB');
-
     for (const t of templates) {
-      const result = await Template.findOneAndUpdate(
-        { eventType: t.eventType },
+      const result = await EmailTemplate.findOneAndUpdate(
+        { name: t.name },
         t,
         { upsert: true, new: true }
       );
-      console.log(`✅ Seeded template: "${result.name}" (${result.eventType})`);
+      console.log(`✅ Seeded template: "${result.name}"`);
     }
 
     console.log('\n🎉 All templates seeded successfully!\n');
-    process.exit(0);
   } catch (err) {
     console.error('❌ Seed failed:', err.message);
-    process.exit(1);
   }
 };
 
-seed();
+// If run directly via CLI
+if (process.argv[1] && process.argv[1].endsWith('defaultTemplates.js')) {
+  const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/campconnect_notification';
+  mongoose.connect(uri).then(async () => {
+    console.log('✅ Connected to MongoDB');
+    await seedTemplates();
+    process.exit(0);
+  }).catch(err => {
+    console.error('❌ MongoDB Connection failed:', err.message);
+    process.exit(1);
+  });
+}

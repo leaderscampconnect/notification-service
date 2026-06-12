@@ -3,11 +3,14 @@ import swaggerUi from "swagger-ui-express";
 
 import { errorHandler, notFoundHandler } from "./errors.js";
 import { metricsMiddleware, metricsRegistry } from "./metrics.js";
-import { createNotificationRouter } from "./notification-routes.js";
 import { openapiDocument } from "./openapi.js";
 
 import templateRoutes from "./routes/templateRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
+import { createNotificationRouter } from "./notification-routes.js";
+
+import { CampingNotificationService } from "./camping/camping-notification-service.js";
+import { createCampingNotificationRouter } from "./camping/camping-notification-routes.js";
 
 export function createApp({
   notificationService,
@@ -66,8 +69,12 @@ export function createApp({
     swaggerUi.setup(openapiDocument, { explorer: true })
   );
   
-  // Mount the new ES module router
-  app.use("/notifications", createNotificationRouter(notificationService));
+
+  const campingService = new CampingNotificationService();
+
+  app.use("/notifications/v2/camping", createCampingNotificationRouter(campingService));
+  
+  app.use("/notifications/v2", createNotificationRouter(notificationService));
   
   // Mount Iheb's CommonJS routes to retain his original endpoints
   app.use("/api/templates", templateRoutes);

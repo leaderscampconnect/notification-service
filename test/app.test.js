@@ -113,6 +113,16 @@ describe("notification API", () => {
     assert.ok(openapi.body.paths["/notifications"]);
   });
 
+  it("exposes Prometheus process and HTTP metrics", async () => {
+    await request(app()).get("/actuator/health");
+    const metrics = await request(app()).get("/actuator/prometheus");
+
+    assert.equal(metrics.status, 200);
+    assert.match(metrics.headers["content-type"], /text\/plain/);
+    assert.match(metrics.text, /campconnect_notification_process_cpu_/);
+    assert.match(metrics.text, /campconnect_notification_http_requests_total/);
+  });
+
   it("returns 204 when deleting a notification", async () => {
     const response = await request(app())
       .delete("/notifications/507f1f77bcf86cd799439011");

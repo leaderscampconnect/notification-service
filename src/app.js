@@ -2,6 +2,7 @@ import express from "express";
 import swaggerUi from "swagger-ui-express";
 
 import { errorHandler, notFoundHandler } from "./errors.js";
+import { metricsMiddleware, metricsRegistry } from "./metrics.js";
 import { createNotificationRouter } from "./notification-routes.js";
 import { openapiDocument } from "./openapi.js";
 
@@ -17,6 +18,7 @@ export function createApp({
   const app = express();
   app.disable("x-powered-by");
   app.use(express.json({ limit: "1mb" }));
+  app.use(metricsMiddleware);
 
   app.get("/actuator/health", async (_request, response) => {
     try {
@@ -46,6 +48,15 @@ export function createApp({
         technology: "Node.js, Express, MongoDB"
       }
     });
+  });
+
+  app.get("/actuator/prometheus", async (_request, response, next) => {
+    try {
+      response.set("Content-Type", metricsRegistry.contentType);
+      response.send(await metricsRegistry.metrics());
+    } catch (error) {
+      next(error);
+    }
   });
 
   app.get(apiDocsPath, (_request, response) => response.json(openapiDocument));

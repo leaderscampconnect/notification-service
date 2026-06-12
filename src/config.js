@@ -38,6 +38,11 @@ export function resolvePlaceholder(value, environment = process.env) {
   return environment[variableName] ?? defaultValue;
 }
 
+export function createRabbitUrl({ host, port, user, password }) {
+  return `amqp://${encodeURIComponent(user)}:`
+    + `${encodeURIComponent(password)}@${host}:${port}`;
+}
+
 async function fetchCentralProperties(environment) {
   const baseUrl = extractConfigServerUrl(environment).replace(/\/$/, "");
   const application = environment.SERVICE_NAME || "notification-service";
@@ -82,6 +87,14 @@ export async function loadConfig(environment = process.env) {
   const rabbitPassword =
     environment.RABBITMQ_PASSWORD
     || property("spring.rabbitmq.password", "guest");
+  const rabbitUrl =
+    environment.RABBITMQ_URL
+    || createRabbitUrl({
+      host: rabbitHost,
+      port: rabbitPort,
+      user: rabbitUser,
+      password: rabbitPassword
+    });
 
   const port = Number(
     environment.SERVER_PORT
@@ -111,16 +124,13 @@ export async function loadConfig(environment = process.env) {
     eurekaFailFast: environment.EUREKA_FAIL_FAST === "true",
     rabbitEnabled: environment.RABBITMQ_ENABLED !== "false",
     rabbitFailFast: environment.RABBITMQ_FAIL_FAST === "true",
-    rabbitUrl:
-      environment.RABBITMQ_URL
-      || `amqp://${encodeURIComponent(rabbitUser)}:`
-      + `${encodeURIComponent(rabbitPassword)}@${rabbitHost}:${rabbitPort}`,
+    rabbitUrl,
     swaggerPath: property("springdoc.swagger-ui.path", "/swagger-ui.html"),
     apiDocsPath: property("springdoc.api-docs.path", "/v3/api-docs"),
     configServer: central,
     
     // RabbitMQ Config
-    rabbitmqUrl: environment.RABBITMQ_URL || "amqp://guest:guest@localhost:5672",
+    rabbitmqUrl: rabbitUrl,
     rabbitmqExchange: environment.RABBITMQ_EXCHANGE || "camping.events",
     
     // SMTP Config

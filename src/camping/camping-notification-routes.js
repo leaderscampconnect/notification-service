@@ -44,6 +44,7 @@ export function createCampingNotificationRouter(notificationService) {
   }));
 
   router.post("/", asyncRoute(async (request, response) => {
+    console.log("FEIGN INCOMING PAYLOAD:", request.body);
     const notification = validateCampingNotificationRequest(request.body);
     response.status(201).json(
       await notificationService.createNotification(notification)

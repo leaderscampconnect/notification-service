@@ -182,6 +182,75 @@ export const openapiDocument = {
           }
         }
       }
+    },
+    "/notifications/v2/camping/recipient/{recipientId}/unread-count": {
+      get: {
+        tags: ["Camping Notifications"],
+        summary: "Count unread camping notifications",
+        parameters: [
+          {
+            name: "recipientId",
+            in: "path",
+            required: true,
+            schema: { type: "string" }
+          }
+        ],
+        responses: {
+          200: {
+            description: "Unread count",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: { unreadCount: { type: "integer", format: "int64" } }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/notifications/v2/camping/recipient/{recipientId}": {
+      get: {
+        tags: ["Camping Notifications"],
+        summary: "List camping notifications for recipient",
+        parameters: [
+          {
+            name: "recipientId",
+            in: "path",
+            required: true,
+            schema: { type: "string" }
+          }
+        ],
+        responses: {
+          200: {
+            description: "Camping Notifications",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "array",
+                  items: { $ref: "#/components/schemas/NotificationResponse" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/notifications/v2/camping": {
+      post: {
+        tags: ["Camping Notifications"],
+        summary: "Create a camping notification (Internal)",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/NotificationRequest" }
+            }
+          }
+        },
+        responses: { 201: notificationResponse }
+      }
     }
   },
   components: {
